@@ -1,0 +1,52 @@
+
+pip freeze > requirements.txt
+
+###################################
+cd MLOps_classification/src/api
+uvicorn main:app --reload
+#########################################
+
+pytest test_app.py
+
+#########################################
+#curl
+
+curl -X GET "http://localhost:8000/admin-only" \
+     -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzbG1hbiJ9.y3wFYLqOEWOu9ftMXW11YwyKnAS5CWVOFWq3W6iICgo"
+---
+curl -X 'POST' \
+  'http://localhost:8000/add-product-data' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJBZG1pbiJ9.YTF_Pm3S38SkBhaTcAF1VrQCGsfceAWX5zfOqiDPRBs' \
+  -F 'image=@POC_0.jpg;type=image/jpeg' \
+  -F 'designation=title10' \
+  -F 'description=description10' \
+  -F 'category=10'
+############################################
+
+# git ########################################
+
+cd /path/to/your/project
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/FaresNaem/deefinity_Challenge.git
+git push -u origin main
+___
+cd /path/to/your/project
+git status          # Check current branch and repository status
+git remote -v       # Verify the remote repository
+git checkout main   # Switch to the main branch (if not already on it)
+git pull origin main # (Optional) Pull changes from the remote
+____
+###############################
+
+UPLOAD_DIR="C:\Users\user\Documents\DS_WB\images_uploaded" uvicorn main:app --host 0.0.0.0 --port 8000
+
+##############################
+
+docker run -e UPLOAD_DIR="/custom/upload/path" -p 80:80 my-fastapi-app
+
+#############################
