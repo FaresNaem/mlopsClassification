@@ -1,9 +1,8 @@
+import os
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi import Depends, HTTPException
 from joblib import load as joblib_load
 from tensorflow.keras.models import load_model
-import os
-from util_model import predict_classification
 from PIL import Image
 from io import BytesIO
 from tensorflow.keras.applications import EfficientNetB0
@@ -16,11 +15,14 @@ from util_auth import create_access_token, verify_password, get_password_hash, v
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Depends, Request
 from uuid import uuid4
-from util_model import train_model_on_new_data, evaluate_model_on_untrained_data
+from util_model import train_model_on_new_data, evaluate_model_on_untrained_data, predict_classification
 
 # Load vectorizer and model globally when the app starts
-vectorizer_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'Tfidf_vectorizer.joblib')
+vectorizer_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'Tfidf_Vectorizer.joblib')
 model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'retrained_balanced_model.keras')
+
+##vectorizer_path = 'Tfidf_Vectorizer.joblib'
+##model_path = 'retrained_balanced_model.keras'
 
 vectorizer = joblib_load(vectorizer_path)
 model = load_model(model_path)
@@ -99,12 +101,8 @@ async def predict_category(
 
 
 @app.get("/admin-only")
-@admin_required()  # Decorator is still applied without modifying it
-async def admin_route(
-        request: Request,
-        session: Session = Depends(get_db),  # Inject the Session here
-        token: str = Depends(oauth2_scheme)  # Optionally inject the token using oauth2_scheme
-):
+@admin_required()
+async def admin_route(request: Request, db: Session = Depends(get_db)):
     return {"message": "Welcome, admin!"}
 
 
@@ -122,8 +120,7 @@ async def add_product_api(
         image: UploadFile = File(...),
         designation: str = Form(...),  # 'designation' as a product title
         description: str = Form(...),
-        category: str = Form(...),
-        token: str = Depends(oauth2_scheme)
+        category: str = Form(...)
 ):
     # Generate a unique filename using UUID and preserve the original file extension
     file_extension = os.path.splitext(image.filename)[1]
@@ -151,13 +148,10 @@ async def add_product_api(
 # New endpoint to evaluate the model on untrained data
 @app.get("/evaluate")
 @admin_required()  # Only admins can access this endpoint
-async def evaluate_model_endpoint(request: Request,
-                                  session: Session = Depends(get_db),  # Inject the Session here
-                                  token: str = Depends(oauth2_scheme)  # Optionally inject the token using oauth2_scheme
-                                  ):
+async def evaluate_model_endpoint(db: Session = Depends(get_db)):
     try:
         # Call the function that evaluates the model
-        f1, report = evaluate_model_on_untrained_data(model, vectorizer, session)
+        f1, report = evaluate_model_on_untrained_data(model, vectorizer, db)
 
         # Return the F1 score and classification report
         return {
@@ -172,7 +166,7 @@ async def evaluate_model_endpoint(request: Request,
 # New endpoint to train the model
 @app.get("/train")
 @admin_required()  # Only admins can access this endpoint
-async def train_model_endpoint(request: Request, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+async def train_model_endpoint(db: Session = Depends(get_db)):
     try:
         # Call the function that trains the model
         f1, report = train_model_on_new_data(model, vectorizer, db)
