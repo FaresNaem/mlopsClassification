@@ -46,7 +46,30 @@ ____
 UPLOAD_DIR="C:\Users\user\Documents\DS_WB\images_uploaded" uvicorn main:app --host 0.0.0.0 --port 8000
 
 ##############################
+docker build -t mlopsclassif .
+docker build -t your_image_name:your_tag .
+
 
 docker run -e UPLOAD_DIR="/custom/upload/path" -p 80:80 my-fastapi-app
+docker run --name mlops2 -p 8000:8000 mlopsclassif
+
+
+docker login
+docker tag mlopsclassif fnaem/mlopsclassif
+docker push fnaem/mlopsclassif
+
 
 #############################
+docker run -it <your-image-name> /bin/sh
+docker run -it mlopsclassif /bin/sh
+
+apt-get update
+apt-get install nano -y
+#################
+
+docker-compose up -d
+docker-compose down
+
+
+
+

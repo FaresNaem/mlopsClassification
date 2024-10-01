@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from unittest.mock import MagicMock, patch
-from src.api.main import app
+from api.main import app
 
 # Set up TestClient for testing FastAPI app
 client = TestClient(app)
