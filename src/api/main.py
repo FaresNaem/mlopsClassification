@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from util_model import predict_classification, train_model_on_new_data, evaluate_model_on_untrained_data
 from util_auth import create_access_token, verify_password, get_password_hash, verify_access_token, admin_required
-from database import create_user, get_user, add_product, SessionLocal, User, create_tables
+from database import create_user, get_user, add_product, SessionLocal, User, create_tables, delete_user
 
 # Load vectorizer and model globally when the app starts
 vectorizer_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'Tfidf_Vectorizer.joblib')
@@ -158,3 +158,21 @@ async def train_model_endpoint(
         return {"f1_score": f1, "classification_report": report}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Training failed: {str(e)}")
+
+# Admin-only route to delete a user by username
+@app.delete("/delete-user/{username}")
+@admin_required()
+async def delete_user_by_admin(
+    request: Request,  # Added Request as the first parameter
+    username: str,
+    session: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme),
+):
+    # Attempt to delete the user by username
+    result = delete_user(session, username)
+
+    # Check if the user was found and deleted
+    if result:
+        return {"message": f"User '{username}' deleted successfully."}
+    else:
+        raise HTTPException(status_code=404, detail="User not found")

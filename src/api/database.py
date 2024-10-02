@@ -89,6 +89,15 @@ def create_user(session, username: str, password_hash: str, role: str = "user"):
     session.refresh(new_user)  # Optional: Refresh the new_user object with the data from the database
     return new_user
 
+# Function to delete a user by username
+def delete_user(session: Session, username: str):
+    user_to_delete = session.query(User).filter(User.username == username).first()
+    if user_to_delete:
+        session.delete(user_to_delete)
+        session.commit()
+        return True
+    else:
+        return False
 
 def get_untrained_products(session: Session):
     """
