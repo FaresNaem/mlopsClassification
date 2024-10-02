@@ -14,7 +14,7 @@ from util_auth import create_access_token, verify_password, get_password_hash, v
 from database import create_user, get_user, add_product, SessionLocal
 
 # Load vectorizer and model globally when the app starts
-vectorizer_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'Tfidf_vectorizer.joblib')
+vectorizer_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'Tfidf_Vectorizer.joblib')
 model_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'retrained_balanced_model.keras')
 
 vectorizer = joblib_load(vectorizer_path)
