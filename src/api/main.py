@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from util_model import predict_classification, train_model_on_new_data, evaluate_model_on_untrained_data
 from util_auth import create_access_token, verify_password, get_password_hash, verify_access_token, admin_required
-from database import create_user, get_user, add_product, SessionLocal, User, create_tables, delete_user
+from database import create_user, get_user, add_product, SessionLocal, User, create_tables, delete_user, log_event, get_all_logs
 
 # Load vectorizer and model globally when the app starts
 vectorizer_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'Tfidf_Vectorizer.joblib')
@@ -53,7 +53,9 @@ async def signup(username: str, password: str, db: Session = Depends(get_db)):
     role = 'admin' if not users_exist else 'user'
 
     hashed_password = get_password_hash(password)
-    create_user(db, username, hashed_password, role)
+    new_user =create_user(db, username, hashed_password, role)
+     # Log the signup event
+    log_event(db, new_user.id, f"User {username} signed up ")
     
     return {"message": f"User created successfully with role: {role}"}
 
@@ -66,6 +68,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         raise HTTPException(status_code=400, detail="Invalid credentials")
     
     token = create_access_token({"sub": user.username})
+    # Log the login event
+    log_event(db, user.id, f"User {user.username} logged in")
     return {"access_token": token, "token_type": "bearer"}
 
 # Product category prediction endpoint
@@ -117,6 +121,7 @@ async def add_product_api(
     category: str = Form(...),
     token: str = Depends(oauth2_scheme)
 ):
+
     file_extension = os.path.splitext(image.filename)[1]
     image_filename = f"{uuid4()}{file_extension}"
     image_path = os.path.join(UPLOAD_DIR, image_filename)
@@ -127,6 +132,7 @@ async def add_product_api(
             f.write(await image.read())
         
         add_product(session, image_path, designation, description, category)
+
         return {"message": "Product added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error saving product: {str(e)}")
@@ -158,6 +164,31 @@ async def train_model_endpoint(
         return {"f1_score": f1, "classification_report": report}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Training failed: {str(e)}")
+
+
+# Admin-only route to return all logs
+@app.get("/admin/logs")
+@admin_required()
+async def get_logs(
+    request: Request,
+    session: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
+):
+    # Call the get_all_logs function to retrieve the logs
+    logs = get_all_logs(session)
+    
+    # Convert logs to a list of dictionaries for JSON serialization
+    log_list = [
+        {
+            "id": log.id,
+            "timestamp": log.timestamp,
+            "user_id": log.user_id,
+            "event": log.event
+        } for log in logs
+    ]
+    
+    return {"logs": log_list}
+
 
 # Admin-only route to delete a user by username
 @app.delete("/delete-user/{username}")

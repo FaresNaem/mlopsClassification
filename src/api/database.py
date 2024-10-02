@@ -71,6 +71,18 @@ def log_event(session, user_id, event):
     session.add(new_log)
     session.commit()
 
+def get_all_logs(session):
+    """
+    Retrieve all log events from the logs table.
+    
+    Parameters:
+        session (Session): SQLAlchemy session object for database interaction.
+
+    Returns:
+        list: List of all logs in the logs table.
+    """
+    return session.query(Log).all()
+
 
 # Function to get a user from the database by username
 def get_user(session, username: str):
@@ -93,6 +105,8 @@ def create_user(session, username: str, password_hash: str, role: str = "user"):
 def delete_user(session: Session, username: str):
     user_to_delete = session.query(User).filter(User.username == username).first()
     if user_to_delete:
+        # Delete associated logs first (you can also update them to set user_id = NULL if the schema allows it)
+        session.query(Log).filter(Log.user_id == user_to_delete.id).delete()
         session.delete(user_to_delete)
         session.commit()
         return True
