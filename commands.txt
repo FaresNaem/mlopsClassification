@@ -50,10 +50,14 @@ docker build -t mlops_classification .
 docker build -t your_image_name:your_tag .
 
 
-docker run -e UPLOAD_DIR="/custom/upload/path" -p 80:80 my-fastapi-app
+#-------
 docker run --name mlops1 -p 8000:8000 mlops_classification
 docker rm -f mlops1
 
+docker run --name mlops1 -p 8000:8000 \
+-e DATABASE_URL="postgresql://postgres:123@192.168.1.10:5432/postgres" \
+mlops_classification
+#-----
 
 docker login
 docker tag mlopsclassif fnaem/mlopsclassif

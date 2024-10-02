@@ -19,12 +19,12 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"  # Map PostgreSQL port
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]  # Check if PostgreSQL is ready
-      interval: 10s  # Interval between checks
-      timeout: 5s  # Timeout for the check
-      retries: 5  # Retry 5 times before considering it unhealthy
-
+   healthcheck:
+  test: ["CMD-SHELL", "pg_isready -U postgres"]
+  interval: 20s  # Increase the interval between checks
+  timeout: 10s   # Increase the timeout
+  retries: 10    # Allow more retries before considering the service unhealthy
+  
 networks:
   default:
     driver: bridge  # Use the default bridge network

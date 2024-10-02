@@ -3,9 +3,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 from sqlalchemy.orm import Session
+import sqlalchemy
 
 # Database connection string
 DATABASE_URL = "postgresql://postgres:123@localhost:5432/postgres"
+#DATABASE_URL = "postgresql://postgres:123@db:5432/postgres"
 
 # Set up engine and session
 engine = create_engine(DATABASE_URL)
@@ -127,6 +129,16 @@ def update_product_state(session: Session, product_ids):
     session.query(Product).filter(Product.id.in_(product_ids)).update({"state": 1}, synchronize_session='fetch')
     session.commit()
 
+# Function to check if the SQL Server is available
+def is_database_available():
+    try:
+        # Create a new database engine
+        engine = create_engine(DATABASE_URL)
+        # Attempt to connect to the database
+        with engine.connect() as connection:
+            return True
+    except sqlalchemy.exc.OperationalError:
+        return False
 
 # Example usage
 if __name__ == "__main__":
