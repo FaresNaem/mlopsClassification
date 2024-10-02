@@ -8,8 +8,7 @@ services:
     volumes:
       - .:/app  # Optional: mount current directory to /app in container
     depends_on:
-      db:
-        condition: service_healthy  # Ensure the db service is healthy before starting the app
+      - db  # Ensure the db service is started before the app
 
   db:
     image: postgres:latest  # Specify your DB image
@@ -19,12 +18,8 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"  # Map PostgreSQL port
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]  # Check if PostgreSQL is ready
-      interval: 10s  # Interval between checks
-      timeout: 5s  # Timeout for the check
-      retries: 5  # Retry 5 times before considering it unhealthy
 
 networks:
   default:
     driver: bridge  # Use the default bridge network
+

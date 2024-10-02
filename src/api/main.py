@@ -1,3 +1,4 @@
+import time
 from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from joblib import load as joblib_load
@@ -11,7 +12,7 @@ from uuid import uuid4
 
 from util_model import predict_classification, train_model_on_new_data, evaluate_model_on_untrained_data
 from util_auth import create_access_token, verify_password, get_password_hash, verify_access_token, admin_required
-from database import create_user, get_user, add_product, SessionLocal, User, create_tables, delete_user, log_event, get_all_logs
+from database import create_user, get_user, add_product, SessionLocal, User, create_tables, delete_user, log_event, get_all_logs, is_database_available
 
 # Load vectorizer and model globally when the app starts
 vectorizer_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'Tfidf_Vectorizer.joblib')
@@ -36,6 +37,10 @@ app = FastAPI()
 # Initialize database when the app starts
 @app.on_event("startup")
 def on_startup():
+    # Wait until the SQL Server is available
+    while not is_database_available():
+        print("Waiting for the database to become available...")
+        time.sleep(5)  # Wait for 5 seconds before retrying
     create_tables()  # Create tables if they don't exist
 
 
