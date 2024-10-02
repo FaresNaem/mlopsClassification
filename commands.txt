@@ -46,12 +46,13 @@ ____
 UPLOAD_DIR="C:\Users\user\Documents\DS_WB\images_uploaded" uvicorn main:app --host 0.0.0.0 --port 8000
 
 ##############################
-docker build -t mlopsclassif .
+docker build -t mlops_classification .
 docker build -t your_image_name:your_tag .
 
 
 docker run -e UPLOAD_DIR="/custom/upload/path" -p 80:80 my-fastapi-app
-docker run --name mlops2 -p 8000:8000 mlopsclassif
+docker run --name mlops1 -p 8000:8000 mlops_classification
+docker rm -f mlops1
 
 
 docker login
