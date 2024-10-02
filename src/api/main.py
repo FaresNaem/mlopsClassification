@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from util_model import predict_classification, train_model_on_new_data, evaluate_model_on_untrained_data
 from util_auth import create_access_token, verify_password, get_password_hash, verify_access_token, admin_required
-from database import create_user, get_user, add_product, SessionLocal
+from database import create_user, get_user, add_product, SessionLocal, User, create_tables
 
 # Load vectorizer and model globally when the app starts
 vectorizer_path = os.path.join(os.path.dirname(__file__), '..', 'models', 'Tfidf_Vectorizer.joblib')
@@ -33,6 +33,31 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 app = FastAPI()
 
+# Initialize database when the app starts
+@app.on_event("startup")
+def on_startup():
+    create_tables()  # Create tables if they don't exist
+
+
+# Updated signup function to assign admin role to the first user
+@app.post("/signup")
+async def signup(username: str, password: str, db: Session = Depends(get_db)):
+    existing_user = get_user(db, username)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username already taken")
+
+    # Check if any users exist in the database
+    users_exist = db.query(User).count() > 0
+
+    # Assign 'admin' role to the first user, otherwise 'user' role
+    role = 'admin' if not users_exist else 'user'
+
+    hashed_password = get_password_hash(password)
+    create_user(db, username, hashed_password, role)
+    
+    return {"message": f"User created successfully with role: {role}"}
+
+
 # User authentication and token generation
 @app.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
@@ -42,16 +67,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     
     token = create_access_token({"sub": user.username})
     return {"access_token": token, "token_type": "bearer"}
-
-@app.post("/signup")
-async def signup(username: str, password: str, db: Session = Depends(get_db)):
-    existing_user = get_user(db, username)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Username already taken")
-    
-    hashed_password = get_password_hash(password)
-    create_user(db, username, hashed_password)
-    return {"message": "User created successfully"}
 
 # Product category prediction endpoint
 @app.post("/predict")
