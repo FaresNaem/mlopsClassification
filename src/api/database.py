@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 import sqlalchemy
 
 # Database connection string
-DATABASE_URL = "postgresql://postgres:123@localhost:5432/postgres"
-#DATABASE_URL = "postgresql://postgres:123@db:5432/postgres"
+#DATABASE_URL = "postgresql://postgres:123@localhost:5432/postgres"
+DATABASE_URL = "postgresql://postgres:123@db:5432/postgres"
 
 # Set up engine and session
 engine = create_engine(DATABASE_URL)
