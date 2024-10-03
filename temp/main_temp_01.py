@@ -355,39 +355,37 @@ async def admin_route(
 # Get UPLOAD_DIR from environment variables, defaulting to './uploads' if not set
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./uploads")
 
-
 @app.post("/add-product-data")
-@admin_required()  # Decorator checks for admin privileges
+@admin_required()
 async def add_product_api(
-        request: Request,  # Add request parameter
-        session: Session = Depends(get_db),  # Database session dependency
-        image: UploadFile = File(...),
-        designation: str = Form(...),  # 'designation' as a product title
-        description: str = Form(...),
-        category: str = Form(...),
-        token: str = Depends(oauth2_scheme)
+    request: Request,
+    session: Session = Depends(get_db),
+    image: UploadFile = File(...),  # Accepting the image file directly
+    designation: str = Form(...),
+    description: str = Form(...),
+    category: str = Form(...),
+    token: str = Depends(oauth2_scheme)
 ):
-    # Generate a unique filename using UUID and preserve the original file extension
+    # Ensure the uploads directory exists
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    
+    # Get the file extension and create a unique filename
     file_extension = os.path.splitext(image.filename)[1]
-    image_filename = f"{uuid4()}{file_extension}"
-    image_path = os.path.join(UPLOAD_DIR, image_filename)
+    new_image_filename = f"{uuid4()}{file_extension}"
+    destination_image_path = os.path.join(UPLOAD_DIR, new_image_filename)
 
     try:
-        # Ensure the upload directory exists
-        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        # Save the uploaded image to the uploads directory
+        with open(destination_image_path, "wb") as dest_file:
+            content = await image.read()  # Read image content from the uploaded file
+            dest_file.write(content)
 
-        # Save the image to the specified directory
-        with open(image_path, "wb") as f:
-            f.write(await image.read())
+        # Add product data to the database with the new image path
+        add_product(session, destination_image_path, designation, description, category)
 
-        # Call the function to add product data to the database
-        add_product(session, image_path, designation, description, category)
-
-        # Return a successful response
-        return {"message": "Product added successfully"}
+        return {"message": "Product added successfully", "image_url": destination_image_path}
     except Exception as e:
-        # If an error occurs, raise an HTTPException
-        raise HTTPException(status_code=500, detail=f"Error saving product: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error adding product: {str(e)}")
 
 
 # New endpoint to evaluate the model on untrained data
