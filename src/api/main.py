@@ -115,33 +115,42 @@ async def admin_route(
 # Define a directory to store uploaded images
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "./uploads")
 
-# Endpoint to add new product data
 @app.post("/add-product-data")
 @admin_required()
 async def add_product_api(
     request: Request,
     session: Session = Depends(get_db),
-    image: UploadFile = File(...),
+    image_filename: str = Form(...),  # Expecting the image filename instead of upload
     designation: str = Form(...),
     description: str = Form(...),
     category: str = Form(...),
     token: str = Depends(oauth2_scheme)
 ):
-
-    file_extension = os.path.splitext(image.filename)[1]
-    image_filename = f"{uuid4()}{file_extension}"
-    image_path = os.path.join(UPLOAD_DIR, image_filename)
+    # Assume the images are available in the /images directory
+    local_image_path = os.path.join("/images", image_filename)  # From mounted Windows folder
+    file_extension = os.path.splitext(image_filename)[1]
+    new_image_filename = f"{uuid4()}{file_extension}"
+    destination_image_path = os.path.join(UPLOAD_DIR, new_image_filename)
 
     try:
+        # Check if the image exists in the mounted directory
+        if not os.path.exists(local_image_path):
+            raise HTTPException(status_code=404, detail=f"Image '{image_filename}' not found")
+
+        # Create the uploads directory if it doesn't exist
         os.makedirs(UPLOAD_DIR, exist_ok=True)
-        with open(image_path, "wb") as f:
-            f.write(await image.read())
-        
-        add_product(session, image_path, designation, description, category)
+
+        # Copy the image from the mounted directory to the uploads directory
+        with open(local_image_path, "rb") as src_file:
+            with open(destination_image_path, "wb") as dest_file:
+                dest_file.write(src_file.read())
+
+        # Add product data to the database
+        add_product(session, destination_image_path, designation, description, category)
 
         return {"message": "Product added successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error saving product: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error adding product: {str(e)}")
 
 # Endpoint to evaluate the model on untrained data
 @app.get("/evaluate")

@@ -1,12 +1,13 @@
 services:
   app:
-    image: mlops_classification  # Replace with your image name
+    image: mlops_dockercustom  # Replace with your image name
     ports:
       - "8000:8000"  # Map port 8000 on host to port 8000 on the container
     environment:
       DATABASE_URL: "postgresql://postgres:123@db:5432/postgres"  # Adjusted to refer to 'db' service in Docker network
     volumes:
       - .:/app  # Optional: mount current directory to /app in container
+      - C:/Users/user/Documents/DS_WB/images:/images  # New volume for accessing images from the local machine
     depends_on:
       db:
         condition: service_healthy  # Ensure the db service is healthy before starting the app
@@ -19,12 +20,12 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"  # Map PostgreSQL port
-   healthcheck:
-  test: ["CMD-SHELL", "pg_isready -U postgres"]
-  interval: 20s  # Increase the interval between checks
-  timeout: 10s   # Increase the timeout
-  retries: 10    # Allow more retries before considering the service unhealthy
-  
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 20s  # Increase the interval between checks
+      timeout: 10s   # Increase the timeout
+      retries: 10    # Allow more retries before considering the service unhealthy
+
 networks:
   default:
     driver: bridge  # Use the default bridge network
