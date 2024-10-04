@@ -68,5 +68,5 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t yourusername/mlops_classification:latest .
-          docker push yourusername/mlops_classification:latest
+          docker build -t fnaem/mlops_classification:latest .
+          docker push fnaem/mlops_classification:latest
