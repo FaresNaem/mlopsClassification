@@ -4,7 +4,12 @@ services:
     ports:
       - "8000:8000"  # Map port 8000 on host to port 8000 on the container
     environment:
-      DATABASE_URL: "postgresql://postgres:123@db:5432/postgres"  # Adjusted to refer to 'db' service in Docker network
+      #DATABASE_URL: "postgresql://postgres:123@db:5432/postgres"  # Adjusted to refer to 'db' service in Docker network
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_HOST: db  # Hostname set to 'db', the service name of the PostgreSQL container
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: postgres
     volumes:
       - .:/app  # Optional: mount current directory to /app in container
     depends_on:
@@ -19,7 +24,7 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"  # Map PostgreSQL port
-   healthcheck:
+  healthcheck:
   test: ["CMD-SHELL", "pg_isready -U postgres"]
   interval: 20s  # Increase the interval between checks
   timeout: 10s   # Increase the timeout

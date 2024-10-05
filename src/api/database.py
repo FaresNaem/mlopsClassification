@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import create_engine, Column, String, Integer, ForeignKey, DateTime, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
@@ -5,9 +6,23 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 import sqlalchemy
 
+
+# Get environment variables, or set defaults
+POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "123")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
+POSTGRES_DB = os.getenv("POSTGRES_DB", "postgres")
+
+# Build the database URL using environment variables
+DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+
+
 # Database connection string
-DATABASE_URL = "postgresql://postgres:123@localhost:5432/postgres"
+#DATABASE_URL = "postgresql://postgres:123@localhost:5432/postgres"
+
 #DATABASE_URL = "postgresql://postgres:123@db:5432/postgres"
+
 
 # Set up engine and session
 engine = create_engine(DATABASE_URL)
