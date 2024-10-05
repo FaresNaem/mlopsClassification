@@ -1,6 +1,6 @@
 services:
   app:
-    image: mlops_dockercustom  # Replace with your image name
+    image: mlops_dockercustom:v2  # Replace with your image name
     ports:
       - "8000:8000"  # Map port 8000 on host to port 8000 on the container
     environment:
