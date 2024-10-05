@@ -93,13 +93,8 @@ async def predict_category(
     image = Image.open(BytesIO(image_data))
 
     predicted_result = predict_classification(model, vectorizer, designation, description, image)
-    predicted_class = int(predicted_result['predicted_class'][0])
-    confidence = float(predicted_result['confidence'][0])
 
-    return {
-        "predicted_class": predicted_class,
-        "confidence": confidence
-    }
+    return predicted_result
 
 # Admin-only route
 @app.get("/admin-only")

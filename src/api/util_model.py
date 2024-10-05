@@ -9,6 +9,37 @@ import numpy as np
 from database import get_untrained_products, Session, update_product_state
 
 
+number_to_cat = {
+     0: "10: Specialized Literature: music, physics",
+     1: "40: Videogames, PS, XBox, Nintendo, cables",
+     2: "50: Tech, controllers, fans, cables, cameras",
+     3: "60: Console videogames, vintage and modern",
+     4: "1140: Figurines, funkos, collectionable mugs",
+     5: "1160: Collection cards: Pokemon, FIFA, Yu-Gi-Oh",
+     6: "1180: Figurines, table games, miscelaneous",
+     7: "1280: Kids: Toys, dolls, puff bears",
+     8: "1281: Toys, cards (Yu-Gi-Oh), babys",
+     9: "1300: Drones",
+    10: "1301: Kids and babys toys, clothes, shoes",
+    11: "1302: Outdoor toys, trampolines, gym, sports",
+    12: "1320: Babys: deco, carts, backpacks, diappers",
+    13: "1560: Home deco and furniture",
+    14: "1920: Cussions. ",
+    15: "1940: Food, coffee, gums, chiclets, mermalade",
+    16: "2060: Photography, Christmas, deco, illumination",
+    17: "2220: Pet toys, collars, cussions, pots, brushes",
+    18: "2280: Magazines, science, art, historical journals",
+    19: "2403: Books, comics, mangas",
+    20: "2462: Console Videogames, consoles and games",
+    21: "2522: Papershop, A5 size, pencils, notebooks",
+    22: "2582: Outdoor furniture: tables, deco, plants",
+    23: "2583: Pools, pumps, water cleaning",
+    24: "2585: Bricolage, house repair, cleaning",
+    25: "2705: Books, novels",
+    26: "2905: PC Videogames"
+}
+
+
 # Function to preprocess image
 def preprocess_image(image, target_size=(224, 224)):
     image = ImageOps.fit(image, target_size, Image.LANCZOS)
@@ -37,7 +68,11 @@ def predict_classification(model, vectorizer, designation: str, description: str
     # Get confidence score (maximum probability)
     confidence = np.max(prediction, axis=1)
 
-    return {'predicted_class': predicted_class, 'confidence': confidence}
+    predicted_class = int(predicted_class[0])
+    confidence = float(confidence)
+    cat = number_to_cat[predicted_class]
+
+    return {'predicted_class': predicted_class , 'confidence': confidence, 'cat': cat }
 
 
 def train_model_on_new_data(model, vectorizer, session: Session):
